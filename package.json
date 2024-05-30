@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@onslip/onslip-360-web-api": "^1.29.9"
+  }
+}

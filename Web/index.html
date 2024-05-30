@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <!-- Meta tags -->
+    <meta charset="utf-8">
+
+    <!-- JavaScript libraries -->
+    <script src="node_modules/core-js/client/shim.min.js"></script>
+    <script src="node_modules/event-source-polyfill/src/eventsource.min.js"></script>
+    <script src="node_modules/@divine/amd-loader/amd-loader.min.js"></script>
+    <script src="build/@onslip/onslip-360-web-api.es3.umd.js"></script>
+    <script src="build/index.js"></script>
+
+    <!-- Styling -->
+    <style>
+        /* CSS styles */
+
+        /* Styles for container */
+        #container {
+            /* Display as flex */
+            display: flex;
+            /* Arrange items in a column */
+            flex-direction: column;
+            /* Align items in center horizontally */
+            align-items: center;
+            /* Align items in center vertically */
+            justify-content: center;
+            /* Set height to 100% of viewport height */
+            height: 100vh;
+        }
+
+        /* Styles for customers container and create card content */
+        #customers-container,
+        .create-card-content {
+            /* Display as grid */
+            display: grid;
+            /* Auto-fit columns with min width of 380px and max width of 1fr */
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            /* Set gap between grid items */
+            gap: 20px;
+            /* Align grid items in center horizontally */
+            justify-items: center;
+            /* Add padding to top */
+            padding-top: 57.5px;
+            /* Add padding to left */
+            padding-left: 155px;
+            /* Add padding to right */
+            padding-right: 155px;
+            /* Add padding to bottom */
+            padding-bottom: 155px;
+            /* Set visibility to visible */
+            visibility: visible;
+            /* Allow overflow content to be scrolled */
+            overflow: auto;
+        }
+
+        /* Styles for customer cards */
+        .customer-card {
+            /* Set width to 380px */
+            width: 380px;
+            /* Set height to 238px */
+            height: 238px;
+            /* Set border to 1px solid #ccc */
+            border: 1px solid #ccc;
+            /* Set border radius to 10px */
+            border-radius: 10px;
+            /* Set perspective for 3D space */
+            perspective: 1000px;
+            /* Set margin bottom to 0 */
+            margin-bottom: 0px;
+            /* Set cursor to pointer */
+            cursor: pointer;
+            /* Set position to relative */
+            position: relative;
+            /* Apply transition effect for transform */
+            transition: transform 0s ease;
+            /* Apply box shadow */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* Display as block */
+            display: block;
+            /* Set visibility to visible */
+            visibility: visible;
+            /* Set padding left to 0 */
+            padding-left: 0px;
+            /* Set padding right to 0 */
+            padding-right: 0px;
+            /* Set padding top to 0 */
+            padding-top: 0px;
+            /* Allow overflow content to be scrolled */
+            overflow: auto;
+        }
+
+        /* Styles for front of the card */
+        .card-front {
+            /* Set width to 100% */
+            width: 100%;
+            /* Set height to 100% */
+            height: 100%;
+            /* Set position to absolute */
+            position: absolute;
+            /* Hide backface of the card */
+            backface-visibility: hidden;
+        }
+
+        /* Styles for back of the card */
+        .card-back {
+            /* Set width to 100% */
+            width: 100%;
+            /* Set height to 100% */
+            height: 100%;
+            /* Set position to absolute */
+            position: absolute;
+            /* Hide backface of the card */
+            backface-visibility: hidden;
+        }
+
+        /* Styles for hitbox */
+        .hitbox {
+            /* Flexbox settings */
+            display: flex;
+            /* Center align items vertically */
+            align-items: center;
+            /* Center align items horizontally */
+            justify-content: center;
+        }
+
+        /* Hover styles for customer card */
+        .customer-card:hover {
+            /* Move card up by 5 pixels on hover */
+            transform: translateY(-5px);
+            /* Add shadow on hover */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Hover styles for expanded customer card */
+        .customer-card.expanded:hover {
+            /* Reset transform on expanded card hover */
+            transform: none;
+            /* Add shadow on hover */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Hover styles for customer card when not expanded */
+        .customer-card:not(.expanded):hover {
+            /* Move card up by 5 pixels on hover */
+            transform: translateY(-5px);
+            /* Instant transition for transform property */
+            transition: transform 0s ease;
+            /* Add shadow on hover */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Hover styles for customer card when not expanded and having specific classes */
+        .customer-card:not(.expanded):hover.no-hover,
+        .customer-card:not(.expanded):hover.flip,
+        .customer-card:not(.expanded):hover.expand,
+        .customer-card:not(.expanded):hover.more {
+            /* Reset transform on specific hover classes */
+            transform: none;
+            /* Remove transition effect */
+            transition: none;
+            /* Add shadow on hover */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Hover styles for elements with class 'no-hover' */
+        .no-hover:hover {
+            /* Reset transform on hover with '!important' */
+            transform: none !important;
+            /* Instant transition with '!important' */
+            transition: transform 0s ease !important;
+            /* Add shadow on hover */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Hover styles for elements with class 'no-hover' and 'expand' */
+        .no-hover.expand:hover {
+            /* Reset transform on hover with '!important' */
+            transform: none !important;
+            /* Transition multiple properties with '!important' */
+            transition: width 2s ease, height 2s ease, top 2s ease, left 2s ease !important;
+            /* Add shadow on hover with '!important' */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Hover styles for elements with class 'no-hover' and 'flip' */
+        .no-hover.flip:hover {
+            /* Rotate element 90 degrees on hover with '!important' */
+            transform: rotateY(90deg) !important;
+            /* Apply transition effect to transform property with '!important' */
+            transition: transform .25s ease !important;
+            /* Add shadow on hover with '!important' */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Hover styles for elements with class 'no-hover' and 'backflip' */
+        .no-hover.backflip:hover {
+            /* Rotate element -90 degrees on hover with '!important' */
+            transform: rotateY(-90deg) !important;
+            /* Apply transition effect to transform property with '!important' */
+            transition: transform .25s ease !important;
+            /* Add shadow on hover with '!important' */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Hover styles for customer card with class 'more' */
+        .customer-card.more:hover {
+            /* Rotate element 180 degrees on hover with '!important' */
+            transform: rotateY(180deg) !important;
+            /* Apply transition effect to transform property with '!important' */
+            transition: transform .25s ease !important;
+            /* Add shadow on hover with '!important' */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Hover styles for customer card with class 'backmore' */
+        .customer-card.backmore:hover {
+            /* Rotate element -180 degrees on hover with '!important' */
+            transform: rotateY(-180deg) !important;
+            /* Apply transition effect to transform property with '!important' */
+            transition: transform .25s ease !important;
+            /* Add shadow on hover with '!important' */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Styles for customer card with class 'backmorehidden' */
+        .customer-card.backmorehidden {
+            /* Rotate element -360 degrees */
+            transform: rotateY(-360deg);
+            /* Instant transition with '!important' */
+            transition: transform 0s ease !important;
+        }
+
+        /* Styles for customer card with class 'flip' */
+        .customer-card.flip {
+            /* Rotate element 90 degrees */
+            transform: rotateY(90deg);
+            /* Apply transition effect to transform property with '!important' */
+            transition: transform .25s ease !important;
+        }
+
+        /* Styles for customer card with class 'backflip' */
+        .customer-card.backflip {
+            /* Rotate element -90 degrees */
+            transform: rotateY(-90deg);
+            /* Apply transition effect to transform property with '!important' */
+            transition: transform .25s ease !important;
+        }
+
+        /* Styles for customer card with class 'more' */
+        .customer-card.more {
+            /* Rotate element 180 degrees */
+            transform: rotateY(180deg);
+            /* Apply transition effect to transform property with '!important' */
+            transition: transform .25s ease !important;
+        }
+
+        /* Styles for customer card with class 'back' */
+        .customer-card.back {
+            /* Rotate element 360 degrees */
+            transform: rotateY(360deg);
+            /* Apply transition effect to transform property with '!important' */
+            transition: transform .25s ease !important;
+        }
+
+        /* Styles for customer card with class 'reverseback' */
+        .customer-card.reverseback {
+            /* Rotate element -360 degrees with '!important' */
+            transform: rotateY(-360deg) !important;
+        }
+
+        /* Styles for elements with class 'backside' */
+        .backside {
+            /* Rotate element 360 degrees with '!important' */
+            transform: rotateY(360deg) !important;
+            /* Disable animation */
+            animation: none;
+        }
+
+        /* Styles for customer card with class 'backmore' */
+        .customer-card.backmore {
+            /* Rotate element -180 degrees */
+            transform: rotateY(-180deg);
+            /* Apply transition effect to transform property with '!important' */
+            transition: transform .25s ease !important;
+        }
+
+        /* Styles for elements with class 'flipped' inside '.card-inner' */
+        .card.flipped .card-inner {
+            /* Rotate element 360 degrees */
+            transform: rotateY(360deg);
+        }
+
+        /* Styles for customer card with class 'shrunken' and its child elements */
+        .customer-card.shrunken .card-back {
+            /* Reset rotation to 0 degrees with '!important' */
+            transform: rotateY(0deg) !important;
+        }
+
+        .customer-card.shrunken .card-back .card-info {
+            /* Reset rotation to 0 degrees */
+            transform: rotateY(0deg);
+        }
+
+        /* Styles for customer card with class 'shrunken' */
+        .customer-card.shrunken {
+            /* Display as grid layout */
+            display: grid;
+        }
+
+        /* Styles for expanded customer card's back content */
+        .customer-card.expanded .card-back p {
+            /* Set text color to black */
+            color: black;
+            /* Set font size to 25 pixels */
+            font-size: 25px;
+            /* Add top margin of 30 pixels */
+            margin-top: 30px;
+            /* Add left margin of 30 pixels */
+            margin-left: 30px;
+        }
+
+        /* Styles for non-expanded customer card's back content */
+        .customer-card:not(.expanded) .card-back p {
+            /* Set text color to black */
+            color: black;
+            /* Set font size to 18 pixels */
+            font-size: 18px;
+        }
+
+        /* Styles for card information */
+        .card-info {
+            /* Add left padding of 25 pixels */
+            padding-left: 25px;
+            /* Set font size to 18 pixels */
+            font-size: 18px;
+            /* Set text color to black */
+            color: black;
+        }
+
+        /* Styles for customer information */
+        .customer-info {
+            /* Set text color to black */
+            color: black;
+            /* Set font size to 25 pixels */
+            font-size: 25px;
+            /* Add top margin of 30 pixels */
+            margin-top: 30px;
+            /* Add left margin of 30 pixels */
+            margin-left: 30px;
+        }
+
+        /* Disable hover effect */
+        .disable-hover {
+            /* Disable pointer events */
+            pointer-events: none;
+        }
+
+        /* Styles for customer rank */
+        .customer-rank {
+            /* Set text color to gold */
+            color: gold;
+            /* Set font size to 25 pixels */
+            font-size: 25px;
+            /* Add text shadow */
+            text-shadow: 1px 1px 0 #000, 2px 2px #000, 3px 3px 0 #000;
+            /* Position the element absolutely */
+            position: absolute;
+            /* Set bottom position to 20 pixels */
+            bottom: 20px;
+            /* Set right position to 20 pixels */
+            right: 20px;
+        }
+
+        /* Styles for bold customer name */
+        .customer-namebold {
+            /* Set text color to black */
+            color: #000;
+            /* Set font weight to bold */
+            font-weight: bold;
+            /* Set font size to 30 pixels */
+            font-size: 30px;
+        }
+
+        /* Styles for bold customer number */
+        .customer-numberbold {
+            /* Set text color to black */
+            color: #000;
+            /* Set font weight to bold */
+            font-weight: bold;
+        }
+
+        /* Styles for search container */
+        .search-container {
+            /* Add top margin of 57.5 pixels */
+            margin-top: 57.5px;
+            /* Display as flex */
+            display: flex;
+            /* Align items in center */
+            align-items: center;
+            /* Justify content in center */
+            justify-content: center;
+            /* Set border top left radius to 0 pixels */
+            border-top-left-radius: 0px;
+            /* Set border bottom left radius to 0 pixels */
+            border-bottom-left-radius: 0px;
+            /* Set border top right radius to 0 pixels */
+            border-top-right-radius: 0px;
+            /* Set border bottom right radius to 0 pixels */
+            border-bottom-right-radius: 0px;
+        }
+
+        /* Styles for search input */
+        #searchInput {
+            /* Set border to 1px solid #ccc */
+            border: 1px solid #ccc;
+            /* Set height to 36 pixels */
+            height: 36px;
+            /* Set font size to 20 pixels */
+            font-size: 20px;
+            /* Set border top left radius to 0 pixels */
+            border-top-left-radius: 0px;
+            /* Set border bottom left radius to 0 pixels */
+            border-bottom-left-radius: 0px;
+            /* Set border top right radius to 0 pixels */
+            border-top-right-radius: 0px;
+            /* Set border bottom right radius to 0 pixels */
+            border-bottom-right-radius: 0px;
+        }
+
+        /* Hover styles for search input */
+        #searchInput:hover {
+            /* Set border to 1px solid #ccc */
+            border: 1px solid #ccc;
+            /* Change background color to whitesmoke on hover */
+            background-color: whitesmoke;
+        }
+
+        /* Styles for drop button */
+        .dropbtn {
+            /* Set width to 40px */
+            width: 40px;
+            /* Set height to 40px */
+            height: 40px;
+            /* Remove border */
+            border: none;
+            /* Remove outline */
+            outline: none;
+            /* Set position to relative */
+            position: relative;
+            /* Display as flex */
+            display: flex;
+            /* Align content in center horizontally */
+            justify-content: center;
+            /* Align items in center vertically */
+            align-items: center;
+            /* Set border radius for top left corner */
+            border-top-left-radius: 0px;
+            /* Set border radius for top left corner */
+            border-bottom-left-radius: 0px;
+            /* Set border radius for top right corner */
+            border-top-right-radius: 5px;
+            /* Set border radius for bottom right corner */
+            border-bottom-right-radius: 5px;
+            /* Set cursor to pointer */
+            cursor: pointer;
+            /* Set background color to white */
+            background-color: white;
+            /* Set border to 1px solid #ccc */
+            border: 1px solid #ccc;
+
+        }
+
+        /* Styles for filter button */
+        .filterbtn {
+            /* Set width to 40px */
+            width: 40px;
+            /* Set height to 40px */
+            height: 40px;
+            /* Remove border */
+            border: none;
+            /* Remove outline */
+            outline: none;
+            /* Set position to relative */
+            position: relative;
+            /* Display as flex */
+            display: flex;
+            /* Align content in center horizontally */
+            justify-content: center;
+            /* Align items in center vertically */
+            align-items: center;
+            /* Set cursor to pointer */
+            cursor: pointer;
+            /* Set background color to white */
+            background-color: white;
+            /* Set border to 1px solid #ccc */
+            border: 1px solid #ccc;
+            /* Set border radius for top left corner */
+            border-top-left-radius: 5px;
+            /* Set border radius for bottom left corner */
+            border-bottom-left-radius: 5px;
+            /* Set border radius for top right corner */
+            border-top-right-radius: 0px;
+            /* Set border radius for bottom right corner */
+            border-bottom-right-radius: 0px;
+        }
+
+        /* Styles for call button */
+        .call-button {
+            /* Set font size to 16px */
+            font-size: 16px;
+            /* Set background color to green */
+            background-color: #4CAF50;
+            /* Set text color to black */
+            color: black;
+            /* Set font weight to bold */
+            font-weight: bold;
+            /* Set padding */
+            padding: 10px 20px;
+            /* Set position to absolute */
+            position: absolute;
+            /* Set distance from bottom */
+            bottom: 20px;
+            /* Set distance from right */
+            right: 20px;
+            /* Set border radius */
+            border-radius: 5px;
+        }
+
+        /* Styles for delete button */
+        .delete-button {
+            /* Set font size to 16px */
+            font-size: 16px;
+            /* Set background color to red */
+            background-color: red;
+            /* Set text color to black */
+            color: black;
+            /* Set font weight to bold */
+            font-weight: bold;
+            /* Set padding */
+            padding: 10px 20px;
+            /* Set position to absolute */
+            position: absolute;
+            /* Set distance from bottom */
+            bottom: 20px;
+            /* Set distance from left */
+            left: 20px;
+            /* Set border radius */
+            border-radius: 5px;
+        }
+
+        /* Styles for edit button */
+        .edit-button {
+            /* Set font size to 16px */
+            font-size: 16px;
+            /* Set background color to yellow */
+            background-color: yellow;
+            /* Set text color to black */
+            color: black;
+            /* Set font weight to bold */
+            font-weight: bold;
+            /* Set padding */
+            padding: 10px 20px;
+            /* Set position to absolute */
+            position: absolute;
+            /* Set distance from top */
+            top: 20px;
+            /* Set distance from right */
+            right: 20px;
+            /* Set border radius */
+            border-radius: 5px;
+
+        }
+
+        /* Styles for create card button */
+        .createCardbtn {
+            /* Set width to 40px */
+            width: 40px;
+            /* Set height to 40px */
+            height: 40px;
+            /* Remove border */
+            border: none;
+            /* Remove outline */
+            outline: none;
+            /* Set position to relative */
+            position: relative;
+            /* Display as flex */
+            display: flex;
+            /* Align content in center horizontally */
+            justify-content: center;
+            /* Align items in center vertically */
+            align-items: center;
+            /* Set cursor to pointer */
+            cursor: pointer;
+            /* Set background color to white */
+            background-color: white;
+            /* Set border to 1px solid #ccc */
+            border: 1px solid #ccc;
+            /* Set border radius */
+            border-radius: 5px;
+            /* Set margin left */
+            margin-left: 10px;
+        }
+
+        /* Styles for action button */
+        .action-button {
+            /* Set background color to green */
+            background-color: green;
+            /* Set font size to 16px */
+            font-size: 16px;
+            /* Set text color to black */
+            color: black;
+            /* Set font weight to bold */
+            font-weight: bold;
+            /* Set height to 45px */
+            height: 45px;
+            /* Set width to 90px */
+            width: 90px;
+            /* Set position to absolute */
+            position: absolute;
+            /* Set distance from bottom */
+            bottom: 20px;
+            /* Set distance from right */
+            right: 20px;
+            /* Set distance from right */
+            border-radius: 5px;
+        }
+
+        /* Styles for abort button */
+        .abort-button {
+            /* Set background color to red */
+            background-color: red;
+            /* Set font size to 16px */
+            font-size: 16px;
+            /* Set text color to black */
+            color: black;
+            /* Set font weight to bold */
+            font-weight: bold;
+            /* Set height to 45px */
+            height: 45px;
+            /* Set width to 90px */
+            width: 90px;
+            /* Set position to absolute */
+            position: absolute;
+            /* Set distance from bottom */
+            bottom: 20px;
+            /* Set distance from left */
+            left: 20px;
+            /* Set border radius */
+            border-radius: 5px;
+        }
+
+        /* Styles for dropdown content */
+        .dropdown-content {
+            /* Hide dropdown content by default */
+            display: none;
+            /* Set position to absolute */
+            position: absolute;
+            /* Set background color */
+            background-color: #f9f9f9;
+            /* Set minimum width */
+            min-width: 160px;
+            /* Add box shadow */
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            /* Set z-index */
+            z-index: 1;
+            /* Set font size */
+            font-size: 20px;
+        }
+
+
+        /* Styles for labels inside dropdown content */
+        .dropdown-content label {
+            /* Display block */
+            display: block;
+            /* Add padding */
+            padding: 12px 16px;
+            /* Remove text decoration */
+            text-decoration: none;
+        }
+
+        /* Styles for checkboxes inside dropdown content */
+        .dropdown-content input[type="checkbox"] {
+            /* Scale checkboxes */
+            transform: scale(1.5);
+        }
+
+        /* Styles for links inside dropdown content */
+        .dropdown-content a {
+            /* Set text color */
+            color: black;
+            /* Add padding */
+            padding: 12px 16px;
+            /* Remove text decoration */
+            text-decoration: none;
+            /* Display block */
+            display: block;
+        }
+
+        /* Hover styles for links inside dropdown content */
+        .dropdown-content a:hover {
+            /* Add border on hover */
+            border: 1px solid #ccc;
+        }
+
+        /* Show dropdown content on hover */
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Change background color of dropbtn on hover */
+        .dropdown:hover .dropbtn {
+            background-color: whitesmoke;
+        }
+
+        /* Styles for dropdown menu */
+        .dropdown-menu {
+            /* Hide dropdown menu by default */
+            display: none;
+            /* Set position to absolute */
+            position: absolute;
+        }
+
+        /* Styles for dropdown menu with specific ID */
+        #dropdownMenuId {
+            /* Hide dropdown menu by default */
+            display: none;
+        }
+
+        /* Show dropdown menu with specific ID */
+        #dropdownMenuId.show {
+            display: block;
+        }
+
+        /* Styles for active dropbtn */
+        .dropbtn.active {
+            /* Add border for active state */
+            border: 2px solid black;
+        }
+
+        /* Styles for filter content */
+        .filter-content {
+            /* Hide filter content by default */
+            display: none;
+            /* Set position to absolute */
+            position: absolute;
+            /* Set background color */
+            background-color: #f9f9f9;
+            /* Set minimum width */
+            min-width: 160px;
+            /* Add box shadow */
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            /* Set z-index */
+            z-index: 1;
+            /* Set font size */
+            font-size: 20px;
+        }
+
+        /* Styles for links inside filter content */
+        .filter-content a {
+            /* Set text color */
+            color: black;
+            /* Add padding */
+            padding: 12px 16px;
+            /* Remove text decoration */
+            text-decoration: none;
+            /* Display block */
+            display: block;
+            /* Set font size */
+            font-size: 20px;
+        }
+
+        /* Show filter content with specific ID */
+        #filterMenuId.show {
+            display: block;
+        }
+
+        /* Styles for filter content */
+        .filter-content {
+            /* Hide filter content by default */
+            display: none;
+            /* Set position to absolute */
+            position: absolute;
+            /* Set background color */
+            background-color: #f9f9f9;
+            /* Set minimum width */
+            min-width: 160px;
+            /* Add box shadow */
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            /* Set z-index */
+            z-index: 1;
+        }
+
+        /* Styles for links inside filter content */
+        .filter-content a {
+            /* Set text color to black */
+            color: black;
+            /* Add padding */
+            padding: 12px 16px;
+            /* Remove text decoration */
+            text-decoration: none;
+            /* Set display to block */
+            display: block;
+        }
+
+        /* Hover styles for links inside filter content */
+        .filter-content a:hover {
+            /* Change background color on hover */
+            background-color: #ddd;
+        }
+
+        /* Show filter content on hover */
+        .filterbtn:hover .filter-content {
+            display: block;
+        }
+
+        /* Change background color of filterbtn on hover */
+        .filterbtn:hover {
+            background-color: whitesmoke;
+        }
+
+        /* Styles for create card container */
+        .create-card-container {
+            /* Position the container */
+            position: absolute;
+            /* Set distance from top */
+            top: 65.5px;
+            /* Set distance from right */
+            right: 65.5px;
+            /* Set width */
+            width: 40px;
+            /* Set height */
+            height: 40px;
+        }
+
+        /* Styles for create card button */
+        #createCardButtonId {
+            /* Set width */
+            width: 40px;
+            /* Set height */
+            height: 40px;
+            /* Remove borders and outlines */
+            border: none;
+            outline: none;
+            /* Set background color */
+            background-color: white;
+            /* Add border */
+            border: 1px solid #ccc;
+        }
+
+        /* Hover effect for create card button */
+        #createCardButtonId:hover {
+            background-color: whitesmoke;
+        }
+
+        .createCardbtn img {
+            /* Set width */
+            width: 24px;
+            /* Set height */
+            height: 24px;
+        }
+
+        /* Hover effect for create card button */
+        .createCardbtn:hover {
+            background-color: whitesmoke;
+        }
+
+        /* Styles for images inside buttons */
+        button img {
+            /* Set width */
+            width: 40px;
+            /* Set height to auto */
+            height: auto;
+        }
+
+        /* Show class */
+        .show {
+            /* Display the element */
+            display: block;
+        }
+
+        /* Styles for customer info */
+        .customer-info {
+            /* Arrange items in a flex container */
+            display: flex;
+        }
+
+        /* Styles for left info */
+        .left-info {
+            /* Flex property */
+            flex: 1;
+        }
+
+        /* Styles for right info */
+        .right-info {
+            /* Flex property */
+            flex: 1;
+        }
+
+        /* Prevent scrolling */
+        body.no-scroll {
+            /* Disable overflow scrolling */
+            overflow: hidden;
+        }
+
+        /* Hide text */
+        .hidden-text {
+            /* Hide text */
+            visibility: hidden;
+        }
+
+        /* Hide elements */
+        .hidden {
+            /* Hide elements */
+            visibility: hidden;
+        }
+
+        /* Styles for flag */
+        .flag {
+            /* Set maximum width */
+            max-width: 60px;
+            /* Set maximum height */
+            max-height: 40px;
+            /* Position the flag */
+            position: absolute;
+            /* Set distance from top */
+            top: 20px;
+            /* Set distance from right */
+            right: 20px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="content">
+        <!-- Container for search bar, dropdowns, and hitbox -->
+        <div class="hitbox">
+            <!-- Search bar and dropdowns -->
+            <div class="search-container">
+                <!-- Dropdown for filters -->
+                <div class="dropdown">
+                    <button class="filterbtn" id="filterbuttonId">
+                        <!-- Filter Button Image -->
+                        <img src="/Web/src/Images/filter.png" alt="Filter Button Image">
+                    </button>
+                    <!-- Dropdown content for filters -->
+                    <div class="filter-content" id="filterMenuId">
+                        <!-- Dropdown items will be populated here -->
+                    </div>
+                </div>
+                <!-- Search input -->
+                <input type="text" id="searchInput">
+                <!-- Dropdown for settings -->
+                <div class="dropdown">
+                    <button class="dropbtn" id="buttonId">
+                        <!-- Button Image -->
+                        <img src="/Web/src/Images/settings.png" alt="Button Image">
+                    </button>
+                    <!-- Dropdown content for settings -->
+                    <div class="dropdown-content" id="dropdownMenuId">
+                        <!-- Dropdown content -->
+                        <label>
+                            <input type="checkbox" id="skipAnimationsCheckbox">
+                            Skip Animations
+                        </label>
+                        <label>
+                            <input type="checkbox" id="enableFlagsCheckbox">
+                            Enable Flags
+                        </label>
+                        <label>
+                            <input type="checkbox" id="disableCardColorsCheckbox">
+                            Disable Card Colors
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Container for creating a new card -->
+        <div class="create-card-container">
+            <button class="createCardbtn" id="createCardButtonId">
+                <!-- Create Card Button Image -->
+                <img src="/Web/src/Images/createCardImg.png" alt="Create Card Button Image">
+                <!-- Container -->
+                <div id="container"></div>
+            </button>
+        </div>
+        <!-- Customer cards container -->
+        <div id="customers-container">
+            <!-- Customer cards will be populated here -->
+        </div>
+        <!-- Template for a blank card -->
+        <script type="text/template" id="blank-card-template">
+    <div class="customer-card">
+    </div>
+</script>
+    </div>
+    <!-- Script for initializing the main function -->
+    <script>
+        document.addEventListener('DOMContentLoaded', main);
+
+        function main() {
+            require('src/web-demo').main();
+        };
+    </script>
+</body>
+
+</html>
